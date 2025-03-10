@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employees</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+        a { color: blue; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>Employees</h1>
+    <a href="edit.html">Add New Employee</a>
+    <table id="employees">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        fetch('http://localhost:8000/employees')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.querySelector('#employees tbody');
+                data.forEach(emp => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${emp.id}</td>
+                        <td>${emp.name}</td>
+                        <td>${emp.email}</td>
+                        <td>${emp.role}</td>
+                        <td>${emp.status}</td>
+                        <td><a href="edit.html?id=${emp.id}">Edit</a></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+    </script>
+</body>
+</html>
