@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Added modern Google Font for improved typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Modernized styling */
+      body {
+        font-family: "Roboto", sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f9fafc;
+      }
+      header {
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 25px;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      th {
+        background: #f1f5fa;
+        padding: 12px;
+      }
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #ececec;
+      }
+      tr:hover {
+        background: #f9f9f9;
+      }
+      button {
+        padding: 8px 16px;
+        margin-right: 5px;
+        border: none;
+        background: #2a72d4;
+        color: #fff;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+      }
+      button:hover {
+        background: #1e5cb8;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+      }
+      .modal-content {
+        background: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      .close {
+        float: right;
+        cursor: pointer;
+        font-size: 24px;
+      }
+      label {
+        display: block;
+        margin-top: 15px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Admin Dashboard</h1>
+    </header>
+    <div class="container">
+      <h2>Employees List</h2>
+      <table id="employeesTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Edit Employee Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <h3>Edit Employee</h3>
+        <form id="editForm">
+          <input type="hidden" id="editEmployeeId" />
+          <label for="editName">Name:</label>
+          <input type="text" id="editName" required />
+          <label for="editEmail">Email:</label>
+          <input type="email" id="editEmail" required />
+          <label for="editAddress">Address:</label>
+          <input type="text" id="editAddress" />
+          <label for="editPhoneNo">Phone:</label>
+          <input type="text" id="editPhoneNo" />
+          <label for="editStatus">Status:</label>
+          <select id="editStatus">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+            <option value="terminated">Terminated</option>
+          </select>
+          <br /><br />
+          <button type="submit">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const apiBase = "http://localhost:8000/employees/";
+
+      // Fetch and list all employees
+      function fetchEmployees() {
+        fetch(apiBase)
+          .then((response) => response.json())
+          .then((data) => {
+            const tbody = document.querySelector("#employeesTable tbody");
+            tbody.innerHTML = "";
+            data.forEach((emp) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+            <td>${emp.id}</td>
+            <td>${emp.name}</td>
+            <td>${emp.email}</td>
+            <td>${emp.role}</td>
+            <td>
+              <button onclick="openEditModal(${emp.id})">Edit</button>
+              <button onclick="toggleRole(${emp.id}, '${emp.role}')">
+                ${emp.role === "admin" ? "Revoke Admin" : "Make Admin"}
+              </button>
+            </td>
+          `;
+              tbody.appendChild(tr);
+            });
+          })
+          .catch((err) => console.error("Error fetching employees:", err));
+      }
+
+      // Open modal to edit employee
+      function openEditModal(employeeId) {
+        fetch(`${apiBase}/${employeeId}`)
+          .then((response) => response.json())
+          .then((emp) => {
+            document.getElementById("editEmployeeId").value = emp.id;
+            document.getElementById("editName").value = emp.name;
+            document.getElementById("editEmail").value = emp.email;
+            document.getElementById("editAddress").value = emp.address || "";
+            document.getElementById("editPhoneNo").value = emp.phone_no || "";
+            document.getElementById("editStatus").value = emp.status;
+            document.getElementById("editModal").style.display = "block";
+          })
+          .catch((err) => console.error("Error fetching employee:", err));
+      }
+
+      function closeModal() {
+        document.getElementById("editModal").style.display = "none";
+      }
+
+      document
+        .getElementById("closeModal")
+        .addEventListener("click", closeModal);
+      window.addEventListener("click", function (event) {
+        if (event.target == document.getElementById("editModal")) {
+          closeModal();
+        }
+      });
+
+      // Handle form submission to update employee details
+      document
+        .getElementById("editForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const id = document.getElementById("editEmployeeId").value;
+          const updatedData = {
+            name: document.getElementById("editName").value,
+            email: document.getElementById("editEmail").value,
+            address: document.getElementById("editAddress").value,
+            phone_no: document.getElementById("editPhoneNo").value,
+            status: document.getElementById("editStatus").value,
+          };
+          fetch(`${apiBase}/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedData),
+          })
+            .then((response) => {
+              if (!response.ok) throw new Error("Update failed");
+              return response.json();
+            })
+            .then(() => {
+              closeModal();
+              fetchEmployees();
+            })
+            .catch((err) => console.error("Error updating employee:", err));
+        });
+
+      // Toggle employee role between admin and user
+      function toggleRole(employeeId, currentRole) {
+        const newRole = currentRole === "admin" ? "user" : "admin";
+        const updatedData = { role: newRole };
+        fetch(`${apiBase}/${employeeId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData),
+        })
+          .then((response) => {
+            if (!response.ok) throw new Error("Role update failed");
+            return response.json();
+          })
+          .then(() => fetchEmployees())
+          .catch((err) => console.error("Error toggling role:", err));
+      }
+
+      // Initial load of employees
+      fetchEmployees();
+    </script>
+  </body>
+</html>

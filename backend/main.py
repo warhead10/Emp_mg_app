@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from employee import router
+import employee
+import auth 
 import uvicorn
 from db import setup_database
 from db import SessionLocal
+
 app = FastAPI(title="Employee Management System")
 
 
@@ -21,8 +23,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router)
-
+app.include_router(employee.router)
+app.include_router(auth.router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Employee App"}
